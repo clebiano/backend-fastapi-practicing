@@ -1,14 +1,17 @@
-FROM python:3.10.1-slim-buster
+FROM python:3.9.6-slim-buster
 
-WORKDIR /code
+WORKDIR /app/src
 
-COPY ./requirements.txt /code/requirements.txt
+RUN apt-get update && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
+RUN pip install poetry==1.1.8
 
-COPY ./app /code/app
+RUN poetry config virtualenvs.create false
+
+COPY pyproject.toml poetry.lock /app/src/
+
+RUN poetry install
+
+COPY . /app/src/
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
-
-# If running behind a proxy like Nginx or Traefik add --proxy-headers
-# CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]
